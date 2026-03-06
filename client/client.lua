@@ -224,6 +224,7 @@ function PHOTOMODE.Start()
         end
         SetTimeScale(1.0)
         PHOTOMODE._IsActive = false
+        TriggerEvent("photomode:stateChanged", PHOTOMODE._IsActive)
         if Config.ShowIconAbovePlayersInPhotomode then
             TriggerServerEvent("photomode:RemovePlayerInPhotomode")
         end
@@ -271,7 +272,6 @@ function PHOTOMODE.Stop()
     Cam.SetActive(PHOTOMODE.CameraName, false, true, 1000)
     Wait(1000)
     Cam.Destroy(PHOTOMODE.CameraName)
-    TriggerEvent("photomode:stateChanged", PHOTOMODE._IsActive)
 end
 
 function PHOTOMODE.IsActive()
