@@ -1,5 +1,5 @@
 PHOTOMODE = {}
-PHOTOMODE.IsActive = false
+PHOTOMODE._IsActive = false
 PHOTOMODE.CameraName = "photoModeCam"
 PHOTOMODE.FOV = 0
 
@@ -50,10 +50,11 @@ function PHOTOMODE.Start()
 
     PHOTOMODE.Settings.Rotation.value = gameplayCamRot.y
 
-    PHOTOMODE.IsActive = true
+    PHOTOMODE._IsActive = true
+    TriggerEvent("photomode:stateChanged", PHOTOMODE._IsActive)
     local RotationValueToApply = gameplayCamRot.y
     Citizen.CreateThread(function()
-        while PHOTOMODE.IsActive do
+        while PHOTOMODE._IsActive do
             PHOTOMODE.Cache.Moved = false
             PHOTOMODE.BlockMouvementsControls()
             local pPed = PlayerPedId()
@@ -222,7 +223,7 @@ function PHOTOMODE.Start()
             Wait(1)
         end
         SetTimeScale(1.0)
-        PHOTOMODE.IsActive = false
+        PHOTOMODE._IsActive = false
         if Config.ShowIconAbovePlayersInPhotomode then
             TriggerServerEvent("photomode:RemovePlayerInPhotomode")
         end
@@ -251,7 +252,7 @@ function PHOTOMODE.RotationToDirection(rotation)
 end
 
 function PHOTOMODE.BlockMouvementsControls()
-    if PHOTOMODE.IsActive then
+    if PHOTOMODE._IsActive then
         DisableControlAction(0, 30, true) -- INPUT_MOVE_LR
         DisableControlAction(0, 31, true) -- INPUT_MOVE_UD
         DisableControlAction(0, 32, true) -- INPUT_MOVE_UP_ONLY
@@ -266,21 +267,31 @@ function PHOTOMODE.BlockMouvementsControls()
 end
 
 function PHOTOMODE.Stop()
-    PHOTOMODE.IsActive = false
+    PHOTOMODE._IsActive = false
     Cam.SetActive(PHOTOMODE.CameraName, false, true, 1000)
     Wait(1000)
     Cam.Destroy(PHOTOMODE.CameraName)
+    TriggerEvent("photomode:stateChanged", PHOTOMODE._IsActive)
 end
 
--- Check permission
-RegisterNetEvent('photomode:toggleMode')
-AddEventHandler('photomode:toggleMode', function()
-    if not PHOTOMODE.IsActive then
-        PHOTOMODE.Start()
-    else
+function PHOTOMODE.IsActive()
+    return PHOTOMODE._IsActive
+end
+
+function PHOTOMODE.Toggle()
+    if PHOTOMODE._IsActive then
         PHOTOMODE.Stop()
+    else
+        PHOTOMODE.Start()
     end
-end)
+end
+
+exports("Toggle", PHOTOMODE.Toggle)
+exports("IsActive", PHOTOMODE.IsActive)
+exports("Stop", PHOTOMODE.Stop)
+
+-- Check permission
+RegisterNetEvent('photomode:toggleMode', PHOTOMODE.Toggle)
 
 if Config.ShowIconAbovePlayersInPhotomode then
     local PlayersPedInPhotomode = {}
